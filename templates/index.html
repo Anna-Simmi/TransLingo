@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Universal Translator</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      padding: 40px;
+      text-align: center;
+      color: white;
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+
+    .header p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+    }
+
+    .translator-section {
+      padding: 40px;
+    }
+
+    .input-group {
+      margin-bottom: 30px;
+    }
+
+    .input-group label {
+      display: block;
+      margin-bottom: 10px;
+      font-weight: 600;
+      color: #333;
+      font-size: 1.1rem;
+    }
+
+    .text-input {
+      width: 100%;
+      padding: 15px;
+      border: 2px solid #e1e5e9;
+      border-radius: 12px;
+      font-size: 1rem;
+      resize: vertical;
+      min-height: 100px;
+      font-family: inherit;
+      transition: border-color 0.3s ease;
+    }
+
+    .text-input:focus {
+      outline: none;
+      border-color: #4facfe;
+      box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+    }
+
+    .language-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+
+    .language-btn {
+      padding: 12px 20px;
+      border: 2px solid #e1e5e9;
+      background: white;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 1rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .language-btn:hover {
+      border-color: #4facfe;
+      background: #f8fbff;
+      transform: translateY(-2px);
+    }
+
+    .language-btn.active {
+      background: #4facfe;
+      border-color: #4facfe;
+      color: white;
+    }
+
+    .translate-btn {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+      margin-bottom: 30px;
+    }
+
+    .translate-btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .translate-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .results {
+      background: #f8fbff;
+      border-radius: 12px;
+      padding: 25px;
+      border: 2px solid #e1e5e9;
+      display: none;
+    }
+
+    .result-item {
+      margin-bottom: 20px;
+      padding: 15px;
+      background: white;
+      border-radius: 8px;
+      border-left: 4px solid #4facfe;
+    }
+
+    .result-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .result-language {
+      font-weight: 600;
+      color: #4facfe;
+      margin-bottom: 5px;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .result-text {
+      font-size: 1.1rem;
+      color: #333;
+      line-height: 1.5;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: #666;
+    }
+
+    .error {
+      background: #fee;
+      border: 1px solid #fcc;
+      color: #c33;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .header h1 {
+        font-size: 2rem;
+      }
+
+      .translator-section {
+        padding: 20px;
+      }
+
+      .language-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>TransLingo</h1>
+      <p>Translate your text into multiple languages instantly</p>
+    </div>
+
+    <!-- Translator Section -->
+    <div class="translator-section">
+      <!-- Text Input -->
+      <div class="input-group">
+        <label for="inputText">Enter text to translate:</label>
+        <textarea id="inputText" class="text-input" placeholder="Type your sentence here..." maxlength="500"></textarea>
+      </div>
+
+      <!-- Language Selection -->
+      <div class="input-group">
+        <label>Select languages to translate to:</label>
+        <div class="language-grid">
+          <button class="language-btn" data-lang="es">🇪🇸 Spanish</button>
+          <button class="language-btn" data-lang="fr">🇫🇷 French</button>
+          <button class="language-btn" data-lang="de">🇩🇪 German</button>
+          <button class="language-btn" data-lang="it">🇮🇹 Italian</button>
+          <button class="language-btn" data-lang="pt">🇵🇹 Portuguese</button>
+          <button class="language-btn" data-lang="ja">🇯🇵 Japanese</button>
+          <button class="language-btn" data-lang="zh-CN">🇨🇳 Chinese</button>
+          <button class="language-btn" data-lang="ko">🇰🇷 Korean</button>
+          <button class="language-btn" data-lang="ru">🇷🇺 Russian</button>
+          <button class="language-btn" data-lang="ar">🇸🇦 Arabic</button>
+        </div>
+      </div>
+
+      <!-- Translate Button -->
+      <button class="translate-btn" id="translateBtn">✨ Translate Now</button>
+
+      <!-- Results -->
+      <div class="results" id="results">
+        <h3 style="margin-bottom: 20px; color: #333;">Translation Results:</h3>
+        <div id="translationResults"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript -->
+  <script>
+    const languageButtons = document.querySelectorAll('.language-btn');
+    const translateBtn = document.getElementById('translateBtn');
+    const inputText = document.getElementById('inputText');
+    const results = document.getElementById('results');
+    const translationResults = document.getElementById('translationResults');
+
+    let selectedLanguages = [];
+
+    const languageNames = {
+      es: 'Spanish',
+      fr: 'French',
+      de: 'German',
+      it: 'Italian',
+      pt: 'Portuguese',
+      ja: 'Japanese',
+      zh: 'Chinese',
+      ko: 'Korean',
+      ru: 'Russian',
+      ar: 'Arabic'
+    };
+
+    // Handle language selection
+    languageButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const lang = button.dataset.lang;
+
+        if (selectedLanguages.includes(lang)) {
+          selectedLanguages = selectedLanguages.filter(l => l !== lang);
+          button.classList.remove('active');
+        } else {
+          selectedLanguages.push(lang);
+          button.classList.add('active');
+        }
+
+        updateTranslateButton();
+      });
+    });
+
+    // Enable/disable translate button
+    function updateTranslateButton() {
+      const hasText = inputText.value.trim().length > 0;
+      const hasLanguages = selectedLanguages.length > 0;
+      translateBtn.disabled = !hasText || !hasLanguages;
+    }
+
+    inputText.addEventListener('input', updateTranslateButton);
+
+    // Handle translate button click
+    translateBtn.addEventListener('click', async () => {
+      const text = inputText.value.trim();
+      if (!text || selectedLanguages.length === 0) return;
+
+      translateBtn.textContent = '🔄 Translating...';
+      translateBtn.disabled = true;
+      results.style.display = 'block';
+      translationResults.innerHTML = '<div class="loading">Translating your text...</div>';
+
+      try {
+        const translations = await translateText(text, selectedLanguages);
+        displayResults(translations);
+      } catch (error) {
+        showError('Translation failed. Please try again.');
+        console.error('Translation error:', error);
+      } finally {
+        translateBtn.textContent = '✨ Translate Now';
+        translateBtn.disabled = false;
+      }
+    });
+
+    // Call backend API
+    async function translateText(text, targetLanguages) {
+      const response = await fetch('/api/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: text, targetLanguages: targetLanguages })
+      });
+
+      if (!response.ok) throw new Error('Translation request failed');
+      return await response.json();
+    }
+
+    // Display results
+    function displayResults(translations) {
+      translationResults.innerHTML = '';
+      translations.forEach(item => {
+        const resultDiv = document.createElement('div');
+        resultDiv.className = 'result-item';
+        resultDiv.innerHTML = `
+          <div class="result-language">${languageNames[item.language] || item.language}</div>
+          <div class="result-text">${item.translatedText}</div>
+        `;
+        translationResults.appendChild(resultDiv);
+      });
+      results.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    // Show error
+    function showError(message) {
+      translationResults.innerHTML = `<div class="error">${message}</div>`;
+    }
+
+    // Initialize
+    updateTranslateButton();
+  </script>
+</body>
+</html>
